@@ -505,7 +505,7 @@ void AigerReader::parse_xaiger()
 				boxes.emplace_back(cell);
 			}
 		}
-		else if (c == 'q') {
+		else if (c == 'q' && false) {
 			f.ignore(sizeof(uint32_t));
 			uint32_t pairNum = parse_xaiger_literal(f);
 
