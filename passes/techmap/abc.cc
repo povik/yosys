@@ -805,7 +805,7 @@ void abc_module(RTLIL::Design *design, RTLIL::Module *current_module, std::strin
 			dont_use_args += stringf("-X \"%s\" ", dont_use_cell.c_str());
 		}
 		for (std::string liberty_file : liberty_files) {
-			abc_script += stringf("read_lib %s -w \"%s\" ; ", dont_use_args.c_str(), liberty_file.c_str());
+			abc_script += stringf("read_lib -G 1.0 %s -w \"%s\" ; ", dont_use_args.c_str(), liberty_file.c_str());
 		}
 		for (std::string liberty_file : genlib_files)
 			abc_script += stringf("read_library \"%s\"; ", liberty_file.c_str());
