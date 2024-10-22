@@ -593,7 +593,7 @@ struct LibertyFrontend : public Frontend {
 
 				if (node->id == "bus" && node->args.size() == 1)
 				{
-					if (ignore_busses) {
+					if (flag_ignore_busses) {
 						log("Ignoring cell %s with a bus interface %s.\n", log_id(module->name), node->args.at(0).c_str());
 						delete module;
 						goto skip_cell;
