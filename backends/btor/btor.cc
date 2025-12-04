@@ -231,10 +231,17 @@ struct BtorWorker
 		if (verbose)
 			f << indent << stringf("; %d %s\n", nid, log_signal(sig));
 
-		for (int i = 0; i < GetSize(sig); i++)
-			bit_nid[sig[i]] = make_pair(nid, i);
+		bool has_marker_bits = false;
 
-		sig_nid[sig] = nid;
+		for (int i = 0; i < GetSize(sig); i++) {
+			if (sig[i] != RTLIL::Sm)
+				bit_nid[sig[i]] = make_pair(nid, i);
+			else
+				has_marker_bits = true;
+		}
+
+		if (!has_marker_bits)
+			sig_nid[sig] = nid;
 		nid_width[nid] = GetSize(sig);
 	}
 
@@ -967,19 +974,23 @@ struct BtorWorker
 
 			for (auto port_id : submodule->ports) {
 				Wire *port = submodule->wire(port_id);
-				if (!cell->hasPort(port_id)) {
-					log_error("Instance '%s' in module '%s' missing port connection '%s'\n",
-						log_id(cell), log_id(module), log_id(port_id));
+				SigSpec signal;
+				if (cell->hasPort(port_id)) {
+					signal = sigmap(cell->getPort(port_id));
+				} else if (!port->port_input) {
+					signal = SigSpec(RTLIL::Sm, port->width);
+				} else {
+					log_error("Instance '%s' in module '%s' missing port connection '%s'",
+						log_id(cell), log_id(module), log_id(port));	
 				}
-				SigSpec signal = sigmap(cell->getPort(port_id));
 				log_assert(signal.size() == port->width);
-
 				if (port->port_input && !port->port_output) {
 					input_signals.append(signal);
 				} else if (port->port_output && !port->port_input) {
 					output_signals.append(signal);
 				} else {
-					log_abort();
+					log_error("Unsupported bidirectional connection on port '%s' of instance '%s' in module '%s'",
+						log_id(port), log_id(cell), log_id(module));
 				}
 			}
 			int inp_nid = get_sig_nid(input_signals);
